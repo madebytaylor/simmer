@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simmer — Interactive Prototype</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #0F172A 0%, #1E2D4A 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-label {
+  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ── Phone frame ─────────────────────────────────────── */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: #111;
+  border-radius: 54px;
+  padding: 12px;
+  box-shadow:
+    0 0 0 1px #333,
+    0 0 0 3px #222,
+    0 40px 100px rgba(0,0,0,0.9),
+    inset 0 0 0 1px rgba(255,255,255,0.07);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Side buttons */
+.phone::before {
+  content:'';
+  position:absolute;
+  left:-4px; top:120px;
+  width:4px; height:36px;
+  background:#2a2a2a;
+  border-radius:2px 0 0 2px;
+  box-shadow: 0 50px 0 #2a2a2a, 0 90px 0 #2a2a2a;
+}
+.phone::after {
+  content:'';
+  position:absolute;
+  right:-4px; top:160px;
+  width:4px; height:70px;
+  background:#2a2a2a;
+  border-radius:0 2px 2px 0;
+}
+
+.phone-inner {
+  width:100%; height:100%;
+  background:#FAFAF8;
+  border-radius:44px;
+  overflow:hidden;
+  position:relative;
+}
+
+/* Dynamic island / notch */
+.notch {
+  position:absolute;
+  top:12px; left:50%;
+  transform:translateX(-50%);
+  width:120px; height:34px;
+  background:#111;
+  border-radius:0 0 22px 22px;
+  z-index:100;
+}
+
+/* ── Status bar ──────────────────────────────────────── */
+.status-bar {
+  height:52px;
+  padding:16px 28px 0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:relative;
+  z-index:10;
+  flex-shrink:0;
+}
+.status-time { font-size:15px; font-weight:600; color:#111; }
+.status-icons { display:flex; gap:5px; align-items:center; }
+
+/* ── Nav bar ─────────────────────────────────────────── */
+.nav {
+  height:52px; padding:0 20px;
+  display:flex; align-items:center;
+  justify-content:space-between;
+  background:rgba(250,250,248,0.95);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  flex-shrink:0;
+}
+.nav-back {
+  color:#1D6FB8; font-size:17px; cursor:pointer;
+  padding:4px 0; min-width:70px;
+  display:flex; align-items:center; gap:2px;
+}
+.nav-title { font-size:17px; font-weight:600; color:#111; text-align:center; flex:1; }
+.nav-right { color:#1D6FB8; font-size:17px; cursor:pointer; min-width:70px; text-align:right; }
+
+/* ── Screens ─────────────────────────────────────────── */
+.screens { position:absolute; inset:0; }
+
+.screen {
+  position:absolute; inset:0;
+  background:#FAFAF8;
+  display:none; flex-direction:column;
+}
+.screen.active { display:flex; }
+
+.scroll {
+  flex:1; overflow-y:auto; padding:0 20px 110px;
+  -webkit-overflow-scrolling:touch;
+}
+.scroll::-webkit-scrollbar { display:none; }
+
+/* ── Fixed bottom ────────────────────────────────────── */
+.bottom {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:14px 20px 30px;
+  background:rgba(250,250,248,0.96);
+  backdrop-filter:blur(12px);
+  border-top:1px solid rgba(0,0,0,0.06);
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn {
+  width:100%; padding:16px; border:none; border-radius:14px;
+  font-size:17px; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  gap:8px; transition:transform .12s, opacity .12s;
+  font-family:inherit; letter-spacing:-0.01em;
+}
+.btn:active { transform:scale(0.97); opacity:0.88; }
+.btn-blue { background:#1D6FB8; color:#fff; }
+.btn-ghost {
+  background:transparent; color:#1D6FB8;
+  border:1.5px solid #1D6FB8; margin-top:10px;
+}
+
+/* ── Badges ──────────────────────────────────────────── */
+.badge {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:4px 10px; border-radius:100px;
+  font-size:12px; font-weight:600;
+}
+.b-time { background:#EFF6FF; color:#1D6FB8; }
+.b-easy { background:#F0FDF4; color:#15803D; }
+.b-good { background:#F0FDF4; color:#15803D; }
+.b-ok   { background:#FFF7ED; color:#C2410C; }
+.b-anch { background:#F5F3FF; color:#6D28D9; }
+
+/* ── Meal card ───────────────────────────────────────── */
+.meal-card {
+  background:#fff; border-radius:18px; padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 2px 14px rgba(0,0,0,0.07);
+  border:2px solid transparent;
+  transition:transform .12s, border-color .15s;
+}
+.meal-card:active { transform:scale(0.985); }
+.meal-title { font-size:17px; font-weight:800; color:#111; margin-bottom:10px; }
+.badge-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.meal-rationale { font-size:13px; color:#6B7280; font-style:italic; line-height:1.5; margin-bottom:14px; }
+.meal-cta {
+  width:100%; padding:11px; background:#1D6FB8; color:#fff;
+  border:none; border-radius:10px; font-size:15px; font-weight:600;
+  cursor:pointer; font-family:inherit; transition:opacity .12s;
+}
+.meal-cta:active { opacity:0.85; }
+
+/* ── Step list ───────────────────────────────────────── */
+.step {
+  display:flex; gap:14px; padding:14px 0;
+  border-bottom:1px solid #F3F4F6; align-items:flex-start;
+}
+.step-num {
+  width:28px; height:28px; background:#EFF6FF;
+  border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-size:13px; font-weight:700;
+  color:#1D6FB8; flex-shrink:0; margin-top:1px;
+}
+.step-text { font-size:15px; color:#374151; line-height:1.5; flex:1; }
+
+/* ── Section header ──────────────────────────────────── */
+.sec-hdr {
+  font-size:12px; font-weight:700; color:#9CA3AF;
+  letter-spacing:0.07em; text-transform:uppercase;
+  margin:20px 0 12px;
+}
+
+/* ── HOME screen specific ────────────────────────────── */
+.hero {
+  background:linear-gradient(150deg, #1D6FB8 0%, #155A96 100%);
+  padding:22px 20px 28px; color:#fff; flex-shrink:0;
+}
+.hero-eyebrow { font-size:13px; opacity:0.7; font-weight:500; margin-bottom:3px; }
+.hero-name { font-size:28px; font-weight:800; margin-bottom:6px; }
+.hero-sub { font-size:15px; opacity:0.85; line-height:1.45; }
+.hero-sub b { opacity:1; font-weight:700; }
+
+.family-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; margin-top:18px; }
+.fam-chip {
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border-radius:100px; padding:5px 12px 5px 5px;
+  font-size:13px; font-weight:500; color:#374151;
+  box-shadow:0 1px 5px rgba(0,0,0,0.08);
+}
+.fam-av {
+  width:26px; height:26px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:13px;
+}
+
+.quick-card {
+  background:#fff; border-radius:16px; padding:16px 18px;
+  margin-bottom:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05);
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  transition:transform .12s;
+}
+.quick-card:active { transform:scale(0.98); }
+.quick-left { display:flex; align-items:center; gap:14px; }
+.q-icon {
+  width:46px; height:46px; border-radius:13px;
+  display:flex; align-items:center; justify-content:center; font-size:22px;
+}
+.q-icon.blue { background:#EFF6FF; }
+.q-icon.orange { background:#FFF7ED; }
+.q-icon.green { background:#F0FDF4; }
+.q-title { font-size:15px; font-weight:600; color:#111; }
+.q-sub { font-size:12px; color:#9CA3AF; margin-top:2px; }
+.chevron { color:#D1D5DB; font-size:22px; font-weight:300; }
+
+.tab-bar {
+  display:flex; justify-content:space-around;
+  padding:10px 0 22px; background:#fff;
+  border-top:1px solid #F3F4F6;
+  position:absolute; bottom:0; left:0; right:0;
+}
+.tab { display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; padding:2px 16px; }
+.tab-icon { font-size:22px; }
+.tab-lbl { font-size:10px; font-weight:500; color:#9CA3AF; }
+.tab.on .tab-lbl { color:#1D6FB8; }
+
+/* ── GENERATING screen ───────────────────────────────── */
+.gen-center {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:40px 32px; text-align:center;
+}
+.gen-icon { font-size:64px; margin-bottom:24px; animation:pulse 1.6s ease-in-out infinite; }
+@keyframes pulse {
+  0%,100%{ transform:scale(1); }
+  50%{ transform:scale(1.1); }
+}
+.gen-title { font-size:22px; font-weight:800; color:#111; margin-bottom:12px; }
+.gen-sub { font-size:15px; color:#6B7280; line-height:1.6; }
+.dots { display:inline-flex; gap:7px; margin-top:28px; }
+.dot {
+  width:8px; height:8px; background:#1D6FB8;
+  border-radius:50%; animation:dotpop 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2){ animation-delay:.2s; }
+.dot:nth-child(3){ animation-delay:.4s; }
+@keyframes dotpop {
+  0%,80%,100%{ transform:scale(0.55); opacity:0.35; }
+  40%{ transform:scale(1); opacity:1; }
+}
+
+/* ── DETAIL screen ───────────────────────────────────── */
+.finn-tip {
+  background:#F0FDF4; border-radius:12px; padding:14px 16px;
+  margin-bottom:20px; display:flex; gap:10px; align-items:flex-start;
+}
+.finn-tip-label { font-size:13px; font-weight:700; color:#15803D; margin-bottom:3px; }
+.finn-tip-text { font-size:13px; color:#166534; line-height:1.5; }
+
+/* ── SHARE screen ────────────────────────────────────── */
+.share-status {
+  background:#EFF6FF; border-radius:14px; padding:14px 16px;
+  display:flex; align-items:center; gap:12px; margin-bottom:20px;
+}
+.share-status-text { font-size:14px; color:#1D6FB8; font-weight:500; }
+
+.share-card {
+  background:#fff; border-radius:14px; padding:15px 16px;
+  margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.share-card-name { font-size:15px; font-weight:700; color:#111; }
+.share-card-meta { font-size:12px; color:#9CA3AF; margin-top:3px; }
+
+.bubble-wrap { margin:20px 0; }
+.bubble {
+  background:#1D6FB8; color:#fff;
+  border-radius:18px 18px 18px 4px;
+  padding:13px 16px; font-size:15px; line-height:1.45;
+  max-width:88%; margin-bottom:5px; display:inline-block;
+}
+.bubble-meta { font-size:12px; color:#9CA3AF; margin-left:4px; }
+
+/* ── EXTRAS screen ───────────────────────────────────── */
+.extra-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 0; border-bottom:1px solid #F3F4F6;
+}
+.extra-label { font-size:16px; color:#111; }
+.extra-sub { font-size:12px; color:#9CA3AF; margin-top:2px; }
+.toggle {
+  width:48px; height:28px; background:#D1D5DB;
+  border-radius:100px; position:relative; cursor:pointer;
+  transition:background .2s; flex-shrink:0;
+}
+.toggle.on { background:#1D6FB8; }
+.toggle-th {
+  width:22px; height:22px; background:#fff;
+  border-radius:50%; position:absolute; top:3px; left:3px;
+  transition:left .2s; box-shadow:0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle.on .toggle-th { left:23px; }
+
+/* ── FEEDBACK screen ─────────────────────────────────── */
+.fb-opt {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:18px 12px; background:#fff; border-radius:16px;
+  cursor:pointer; border:2px solid transparent; flex:1;
+  transition:transform .12s, border-color .15s, background .15s;
+}
+.fb-opt:active { transform:scale(0.95); }
+.fb-opt.on { border-color:#1D6FB8; background:#EFF6FF; }
+.fb-emoji { font-size:34px; }
+.fb-label { font-size:13px; font-weight:600; color:#374151; }
+.fb-row { display:flex; gap:10px; }
+
+.tod-btn {
+  flex:1; padding:13px 6px; background:#fff;
+  border:2px solid #E5E7EB; border-radius:12px;
+  font-size:13px; font-weight:600; color:#374151;
+  cursor:pointer; text-align:center; transition:border-color .15s, background .15s;
+  font-family:inherit;
+}
+.tod-btn:active { transform:scale(0.96); }
+.tod-btn.on { border-color:#1D6FB8; background:#EFF6FF; color:#1D6FB8; }
+
+/* ── DONE screen ─────────────────────────────────────── */
+.done-center {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:40px 24px; text-align:center;
+}
+.done-icon {
+  width:88px; height:88px; background:#F0FDF4; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:44px; margin-bottom:22px;
+}
+.done-title { font-size:26px; font-weight:800; color:#111; margin-bottom:10px; }
+.done-sub { font-size:15px; color:#6B7280; line-height:1.6; margin-bottom:28px; }
+.stats-row { display:flex; gap:10px; width:100%; margin-bottom:20px; }
+.stat-card {
+  flex:1; background:#fff; border-radius:14px; padding:14px;
+  text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.stat-val { font-size:26px; font-weight:800; color:#1D6FB8; }
+.stat-lbl { font-size:11px; color:#9CA3AF; font-weight:500; margin-top:2px; }
+
+/* ── Bottom label ────────────────────────────────────── */
+.bottom-label {
+  color:rgba(255,255,255,0.25); font-size:11px;
+  letter-spacing:0.04em; text-align:center;
+}
+
+/* screen-to-screen flow guide */
+.flow-guide {
+  display:flex; gap:6px; align-items:center;
+}
+.flow-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:rgba(255,255,255,0.2); cursor:pointer;
+  transition:background .2s;
+}
+.flow-dot.on { background:rgba(255,255,255,0.7); width:20px; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="top-label">Simmer &nbsp;·&nbsp; Interactive Prototype &nbsp;·&nbsp; Click to navigate</div>
+
+  <div class="phone">
+    <div class="phone-inner">
+      <div class="notch"></div>
+      <div class="screens">
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  HOME                                         -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen active" id="s-home">
+
+          <div class="status-bar">
+            <span class="status-time">5:12 PM</span>
+            <div class="status-icons">
+              <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="7" width="3" height="5" rx="1" fill="#111"/><rect x="4.5" y="4.5" width="3" height="7.5" rx="1" fill="#111"/><rect x="9" y="2" width="3" height="10" rx="1" fill="#111"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#111"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" fill="#111"/><path d="M8 5.5C5.79 5.5 3.8 6.4 2.36 7.86L3.78 9.28C4.85 8.21 6.35 7.5 8 7.5s3.15.71 4.22 1.78l1.42-1.42C12.2 6.4 10.21 5.5 8 5.5z" fill="#111"/><path d="M8 1.5C4.69 1.5 1.71 2.85-.36 5.07l1.42 1.42C3 4.72 5.37 3.5 8 3.5s5 1.22 6.94 2.99l1.42-1.42C14.29 2.85 11.31 1.5 8 1.5z" fill="#111"/></svg>
+              <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="2.5" stroke="#111" stroke-opacity=".35"/><rect x="1.5" y="1.5" width="17" height="9" rx="1.5" fill="#111"/><path d="M23 4v4a2 2 0 000-4z" fill="#111" fill-opacity=".4"/></svg>
+            </div>
+          </div>
+
+          <div class="hero">
+            <div class="hero-eyebrow">Good evening 👋</div>
+            <div class="hero-name">Taylor</div>
+            <div class="hero-sub">It's <b>5:12 PM</b> — 2 hours before bedtime. Let's figure out dinner.</div>
+          </div>
+
+          <div class="scroll" style="padding-top:0;">
+
+            <div class="family-row">
+              <div class="fam-chip"><div class="fam-av" style="background:#EFF6FF;">👩</div>Taylor</div>
+              <div class="fam-chip"><div class="fam-av" style="background:#F0FDF4;">👨</div>Matt</div>
+              <div class="fam-chip"><div class="fam-av" style="background:#FFF7ED;">🧒</div>Finn, 3</div>
+              <div class="fam-chip"><div class="fam-av" style="background:#FDF4FF;">👶</div>Baby, 8mo</div>
+            </div>
+
+            <div class="quick-card" onclick="go('generating')">
+              <div class="quick-left">
+                <div class="q-icon blue">🍳</div>
+                <div>
+                  <div class="q-title">What's for dinner?</div>
+                  <div class="q-sub">Get AI suggestions for tonight & the next few nights</div>
+                </div>
+              </div>
+              <div class="chevron">›</div>
+            </div>
+
+            <div class="quick-card" onclick="go('extras')">
+              <div class="quick-left">
+                <div class="q-icon orange">🛒</div>
+                <div>
+                  <div class="q-title">Update this week's extras</div>
+                  <div class="q-sub">Flag what's in your fridge right now</div>
+                </div>
+              </div>
+              <div class="chevron">›</div>
+            </div>
+
+            <div class="quick-card">
+              <div class="quick-left">
+                <div class="q-icon green">📋</div>
+                <div>
+                  <div class="q-title">Pantry profile</div>
+                  <div class="q-sub">Staples · Preferences · Cook time limit</div>
+                </div>
+              </div>
+              <div class="chevron">›</div>
+            </div>
+
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab on"><div class="tab-icon">🏠</div><div class="tab-lbl" style="color:#1D6FB8;">Home</div></div>
+            <div class="tab"><div class="tab-icon">🍽️</div><div class="tab-lbl">History</div></div>
+            <div class="tab"><div class="tab-icon">👥</div><div class="tab-lbl">Family</div></div>
+            <div class="tab"><div class="tab-icon">⚙️</div><div class="tab-lbl">Settings</div></div>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  GENERATING                                   -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-generating">
+          <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="gen-center">
+            <div class="gen-icon">🍳</div>
+            <div class="gen-title">Finding meals for your family…</div>
+            <div class="gen-sub">Checking your pantry, Finn's anchor foods, and your 30-minute limit.</div>
+            <div class="dots">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  SUGGESTIONS                                  -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-suggestions">
+          <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('home')">‹ Home</div>
+            <div class="nav-title">Tonight's Options</div>
+            <div class="nav-right" onclick="go('share')">Share</div>
+          </div>
+          <div class="scroll" style="padding-top:16px;">
+
+            <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:16px;">
+              3 options from your pantry · Under 30 min · Finn-friendly
+            </p>
+
+            <div class="meal-card">
+              <div class="meal-title">Sheet Pan Chicken &amp; Veggies</div>
+              <div class="badge-row">
+                <span class="badge b-time">⏱ 25 min</span>
+                <span class="badge b-easy">Easy</span>
+                <span class="badge b-good">🟢 Finn loves it</span>
+                <span class="badge b-anch">🍗 Chicken</span>
+              </div>
+              <div class="meal-rationale">Uses chicken thighs and pantry veggies. One pan, easy cleanup — Finn reliably eats chicken.</div>
+              <button class="meal-cta" onclick="pick(1)">Choose this →</button>
+            </div>
+
+            <div class="meal-card">
+              <div class="meal-title">Garlic Butter Pasta &amp; Parmesan</div>
+              <div class="badge-row">
+                <span class="badge b-time">⏱ 15 min</span>
+                <span class="badge b-easy">Easy</span>
+                <span class="badge b-good">🟢 Finn loves it</span>
+                <span class="badge b-anch">🍝 Noodles</span>
+              </div>
+              <div class="meal-rationale">The classic toddler win. Garlic olive oil for adults, plain butter for Finn. Done in 15 minutes.</div>
+              <button class="meal-cta" onclick="pick(2)">Choose this →</button>
+            </div>
+
+            <div class="meal-card">
+              <div class="meal-title">Egg Fried Rice with Peas</div>
+              <div class="badge-row">
+                <span class="badge b-time">⏱ 15 min</span>
+                <span class="badge b-easy">Easy</span>
+                <span class="badge b-ok">🟡 Finn-friendly</span>
+                <span class="badge b-anch">🍚 Rice + Eggs</span>
+              </div>
+              <div class="meal-rationale">Great use of leftover rice. Add frozen peas for color. Finn may pick around the peas — that's fine.</div>
+              <button class="meal-cta" onclick="pick(3)">Choose this →</button>
+            </div>
+
+          </div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="go('share')">📤 Share options with Matt</button>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  MEAL DETAIL                                  -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-detail">
+          <div class="status-bar"><span class="status-time">5:13 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('suggestions')">‹ Options</div>
+            <div class="nav-title" id="d-nav">Tonight</div>
+            <div class="nav-right"></div>
+          </div>
+          <div class="scroll" style="padding-top:20px;">
+            <div style="font-size:22px;font-weight:800;color:#111;margin-bottom:10px;" id="d-title"></div>
+            <div class="badge-row" id="d-badges"></div>
+            <div style="height:16px;"></div>
+            <div class="finn-tip">
+              <span style="font-size:20px;">👶</span>
+              <div>
+                <div class="finn-tip-label">Finn tip</div>
+                <div class="finn-tip-text" id="d-finn"></div>
+              </div>
+            </div>
+            <div class="sec-hdr">Quick steps</div>
+            <div id="d-steps"></div>
+          </div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="go('feedback')">✅ Mark as cooked</button>
+            <button class="btn btn-ghost" onclick="go('share')">📤 Share with Matt first</button>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  SHARE                                        -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-share">
+          <div class="status-bar"><span class="status-time">5:13 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('suggestions')">‹ Options</div>
+            <div class="nav-title">Shared with Matt</div>
+            <div class="nav-right"></div>
+          </div>
+          <div class="scroll" style="padding-top:20px;">
+
+            <div class="share-status">
+              <span style="font-size:22px;">📬</span>
+              <div class="share-status-text">Sent to Matt — options shared as a notification</div>
+            </div>
+
+            <div class="sec-hdr">Options you sent</div>
+
+            <div class="share-card">
+              <div class="share-card-name">🍗 Sheet Pan Chicken &amp; Veggies</div>
+              <div class="share-card-meta">25 min · Easy · Finn loves it</div>
+            </div>
+            <div class="share-card">
+              <div class="share-card-name">🍝 Garlic Butter Pasta &amp; Parmesan</div>
+              <div class="share-card-meta">15 min · Easy · Finn loves it</div>
+            </div>
+            <div class="share-card">
+              <div class="share-card-name">🍚 Egg Fried Rice with Peas</div>
+              <div class="share-card-meta">15 min · Easy · Finn-friendly</div>
+            </div>
+
+            <div class="sec-hdr" style="margin-top:24px;">Matt's response</div>
+            <div class="bubble-wrap">
+              <div class="bubble">Pasta works for me! Can you start it? I'll be home by 5:45 🙏</div><br>
+              <span class="bubble-meta">Matt · just now</span>
+            </div>
+
+          </div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="pick(2)">🍝 View Pasta prep steps →</button>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  FEEDBACK                                     -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-feedback">
+          <div class="status-bar"><span class="status-time">7:02 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('detail')">‹ Back</div>
+            <div class="nav-title">How'd it go?</div>
+            <div class="nav-right"></div>
+          </div>
+          <div class="scroll" style="padding-top:20px;">
+            <p style="font-size:15px;color:#6B7280;line-height:1.5;margin-bottom:20px;">
+              Your feedback helps Simmer get smarter about what your family actually likes.
+            </p>
+
+            <div class="sec-hdr">Overall dinner?</div>
+            <div class="fb-row">
+              <div class="fb-opt" onclick="fbPick(this,'dinner')">
+                <div class="fb-emoji">😍</div><div class="fb-label">Great</div>
+              </div>
+              <div class="fb-opt" onclick="fbPick(this,'dinner')">
+                <div class="fb-emoji">😐</div><div class="fb-label">It was ok</div>
+              </div>
+              <div class="fb-opt" onclick="fbPick(this,'dinner')">
+                <div class="fb-emoji">😬</div><div class="fb-label">Miss</div>
+              </div>
+            </div>
+
+            <div class="sec-hdr" style="margin-top:24px;">Did Finn eat it?</div>
+            <div style="display:flex;gap:8px;">
+              <button class="tod-btn" onclick="todPick(this)">✅ Yes!</button>
+              <button class="tod-btn" onclick="todPick(this)">🙂 Mostly</button>
+              <button class="tod-btn" onclick="todPick(this)">❌ Nope</button>
+            </div>
+
+          </div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="go('done')">Save &amp; finish</button>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  DONE                                         -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-done">
+          <div class="status-bar"><span class="status-time">7:03 PM</span></div>
+          <div class="done-center">
+            <div class="done-icon">✅</div>
+            <div class="done-title">Done! Great work.</div>
+            <div class="done-sub">Simmer will remember this one.<br>Tomorrow's suggestions will be even better.</div>
+            <div class="stats-row">
+              <div class="stat-card"><div class="stat-val">3</div><div class="stat-lbl">Nights planned</div></div>
+              <div class="stat-card"><div class="stat-val">$0</div><div class="stat-lbl">Takeout spent</div></div>
+              <div class="stat-card"><div class="stat-val">15m</div><div class="stat-lbl">Cook time</div></div>
+            </div>
+            <button class="btn btn-blue" style="width:100%;" onclick="go('home')">Back to home</button>
+          </div>
+        </div>
+
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--  EXTRAS                                       -->
+        <!-- ══════════════════════════════════════════════ -->
+        <div class="screen" id="s-extras">
+          <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('home')">‹ Home</div>
+            <div class="nav-title">This Week's Extras</div>
+            <div class="nav-right"></div>
+          </div>
+          <div class="scroll" style="padding-top:16px;">
+            <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:20px;">
+              Flag anything special this week — perishables, bulk buys, things that need to be used. Takes 30 seconds.
+            </p>
+            <div class="sec-hdr">Do you have any of these?</div>
+            <div class="extra-item">
+              <div><div class="extra-label">🐟 Salmon (use soon)</div><div class="extra-sub">Perishable · Prioritize tonight or tomorrow</div></div>
+              <div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div>
+            </div>
+            <div class="extra-item">
+              <div><div class="extra-label">🥩 Ground beef</div><div class="extra-sub">From last week's shop</div></div>
+              <div class="toggle on" onclick="tog(this)"><div class="toggle-th"></div></div>
+            </div>
+            <div class="extra-item">
+              <div><div class="extra-label">🥘 Costco lasagna</div><div class="extra-sub">Pre-packaged · 45 min oven</div></div>
+              <div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div>
+            </div>
+            <div class="extra-item">
+              <div><div class="extra-label">🥦 Fresh broccoli</div><div class="extra-sub">Use within 3 days</div></div>
+              <div class="toggle on" onclick="tog(this)"><div class="toggle-th"></div></div>
+            </div>
+            <div class="extra-item">
+              <div><div class="extra-label">🍗 Leftover rotisserie chicken</div><div class="extra-sub">Use tonight or tomorrow</div></div>
+              <div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div>
+            </div>
+          </div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="go('home')">✓ Save extras</button>
+          </div>
+        </div>
+
+
+      </div><!-- /screens -->
+    </div><!-- /phone-inner -->
+  </div><!-- /phone -->
+
+  <!-- Flow dots -->
+  <div class="flow-guide" id="flow-guide">
+    <div class="flow-dot on" onclick="go('home')" title="Home"></div>
+    <div class="flow-dot" onclick="go('generating')" title="Generating"></div>
+    <div class="flow-dot" onclick="go('suggestions')" title="Suggestions"></div>
+    <div class="flow-dot" onclick="go('detail')" title="Meal Detail"></div>
+    <div class="flow-dot" onclick="go('share')" title="Share"></div>
+    <div class="flow-dot" onclick="go('feedback')" title="Feedback"></div>
+    <div class="flow-dot" onclick="go('done')" title="Done"></div>
+  </div>
+
+  <div class="bottom-label">Simmer &nbsp;·&nbsp; Product Prototype &nbsp;·&nbsp; Taylor Tegtmeyer &nbsp;·&nbsp; 2026</div>
+</div>
+
+
+<script>
+const SCREENS = ['home','generating','suggestions','detail','share','feedback','done','extras'];
+
+const MEALS = {
+  1: {
+    nav: 'Sheet Pan Chicken',
+    title: 'Sheet Pan Chicken &amp; Veggies',
+    badges: '<span class="badge b-time">⏱ 25 min</span><span class="badge b-easy">Easy</span><span class="badge b-good">🟢 Finn loves it</span><span class="badge b-anch">🍗 Chicken</span>',
+    finn: 'Serve chicken in strips on the side — he can dip in ketchup. Skip seasoning on his portion.',
+    steps: [
+      'Preheat oven to 425°F.',
+      'Toss chicken thighs and chopped veggies in olive oil, salt &amp; pepper.',
+      'Spread on a sheet pan — don\'t crowd them.',
+      'Roast 22–25 min until chicken reaches 165°F.',
+      'Slice chicken into strips for Finn; plate together for adults.'
+    ]
+  },
+  2: {
+    nav: 'Garlic Butter Pasta',
+    title: 'Garlic Butter Pasta &amp; Parmesan',
+    badges: '<span class="badge b-time">⏱ 15 min</span><span class="badge b-easy">Easy</span><span class="badge b-good">🟢 Finn loves it</span><span class="badge b-anch">🍝 Noodles</span>',
+    finn: 'Pull Finn\'s portion before adding garlic. Toss with just butter and a little parmesan — he\'ll clean the plate.',
+    steps: [
+      'Boil salted water; cook pasta per package (8–10 min).',
+      'Reserve ½ cup pasta water before draining.',
+      'Sauté 3 garlic cloves in olive oil, about 1 min.',
+      'Toss pasta with garlic oil, butter, parmesan, and a splash of pasta water.',
+      'Set Finn\'s bowl aside with just butter &amp; parmesan before the garlic goes in.'
+    ]
+  },
+  3: {
+    nav: 'Egg Fried Rice',
+    title: 'Egg Fried Rice with Peas',
+    badges: '<span class="badge b-time">⏱ 15 min</span><span class="badge b-easy">Easy</span><span class="badge b-ok">🟡 Finn-friendly</span><span class="badge b-anch">🍚 Rice + Eggs</span>',
+    finn: 'Finn may pick around the peas — that\'s fine. Plate his portion before seasoning and serve with a side of fruit.',
+    steps: [
+      'Heat sesame oil in a large pan or wok on high heat.',
+      'Add cold leftover rice; stir-fry 2–3 min until lightly crispy.',
+      'Push rice to the side; scramble 3 eggs directly in the pan.',
+      'Fold eggs into rice; add frozen peas and a splash of soy sauce.',
+      'Plate Finn\'s portion before adding extra seasoning.'
+    ]
+  }
+};
+
+let current = 'home';
+let genTimer = null;
+
+function go(id) {
+  if (genTimer) { clearTimeout(genTimer); genTimer = null; }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  current = id;
+  updateDots(id);
+
+  if (id === 'generating') {
+    genTimer = setTimeout(() => go('suggestions'), 2400);
+  }
+}
+
+function pick(id) {
+  const m = MEALS[id];
+  document.getElementById('d-nav').textContent = m.nav;
+  document.getElementById('d-title').innerHTML = m.title;
+  document.getElementById('d-badges').innerHTML = m.badges;
+  document.getElementById('d-finn').innerHTML = m.finn;
+  const stepsEl = document.getElementById('d-steps');
+  stepsEl.innerHTML = m.steps.map((s, i) =>
+    `<div class="step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`
+  ).join('');
+  go('detail');
+}
+
+function tog(el) { el.classList.toggle('on'); }
+
+function fbPick(el, group) {
+  el.closest('.fb-row').querySelectorAll('.fb-opt').forEach(o => o.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function todPick(el) {
+  el.parentElement.querySelectorAll('.tod-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function updateDots(id) {
+  const flow = ['home','generating','suggestions','detail','share','feedback','done'];
+  const dots = document.querySelectorAll('.flow-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('on', flow[i] === id);
+  });
+}
+</script>
+</body>
+</html>
