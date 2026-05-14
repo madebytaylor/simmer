@@ -65,6 +65,21 @@ body {
 .btn-blue { background:#1D6FB8; color:#fff; }
 .btn-ghost { background:transparent; color:#1D6FB8; border:1.5px solid #1D6FB8; margin-top:10px; }
 
+/* Side-by-side button row */
+.btn-row { display:flex; gap:10px; }
+.btn-row .btn { width:auto; }
+.btn-row .btn-blue { flex:1; }
+.btn-step-back { background:#F3F4F6; color:#374151; font-size:16px; padding:16px 18px; flex:0 0 auto; border-radius:14px; border:none; font-weight:600; cursor:pointer; font-family:inherit; transition:transform .12s, opacity .12s; }
+.btn-step-back:active { transform:scale(0.97); opacity:0.85; }
+
+/* Add custom item row */
+.add-item-row { grid-column:1/-1; display:flex; gap:8px; margin-top:6px; }
+.add-item-input { flex:1; padding:11px 14px; border:1.5px solid #E5E7EB; border-radius:11px; font-size:14px; font-family:inherit; color:#111; background:#fff; outline:none; min-width:0; }
+.add-item-input:focus { border-color:#1D6FB8; }
+.add-item-input::placeholder { color:#9CA3AF; }
+.add-item-btn { width:42px; height:42px; background:#1D6FB8; color:#fff; border:none; border-radius:11px; font-size:22px; line-height:1; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:transform .12s; }
+.add-item-btn:active { transform:scale(0.92); }
+
 /* Badges */
 .badge { display:inline-flex; align-items:center; gap:3px; padding:4px 10px; border-radius:100px; font-size:12px; font-weight:600; }
 .b-time { background:#EFF6FF; color:#1D6FB8; }
@@ -234,6 +249,60 @@ body {
 .summary-icon { font-size:20px; }
 .summary-text { font-size:14px; color:#374151; font-weight:500; }
 
+/* PHOTO SCAN CARD */
+.scan-card {
+  background: linear-gradient(135deg, #1D6FB8 0%, #155A96 100%);
+  border-radius: 16px; padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; margin-bottom: 4px;
+  transition: transform .12s, opacity .12s;
+  box-shadow: 0 4px 16px rgba(29,111,184,0.25);
+}
+.scan-card:active { transform:scale(0.97); opacity:0.9; }
+.scan-card-icon { font-size:34px; }
+.scan-card-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:3px; }
+.scan-card-sub { font-size:13px; color:rgba(255,255,255,0.72); line-height:1.4; }
+
+.or-divider { display:flex; align-items:center; gap:10px; margin:12px 0; }
+.or-line { flex:1; height:1px; background:#E5E7EB; }
+.or-text { font-size:12px; color:#9CA3AF; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+
+.detected-banner {
+  background:#F0FDF4; border:1.5px solid #86EFAC;
+  border-radius:12px; padding:11px 14px;
+  font-size:13px; font-weight:600; color:#15803D;
+  display:none; align-items:center; gap:8px; margin-bottom:12px;
+}
+.detected-banner.show { display:flex; }
+
+/* SCAN OVERLAY */
+#scan-overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,0.93);
+  z-index:500; display:none; flex-direction:column;
+  align-items:center; justify-content:center; gap:22px;
+  border-radius:44px;
+}
+#scan-overlay.active { display:flex; }
+.scan-frame {
+  width:270px; height:170px; border:2px solid #1D6FB8;
+  border-radius:14px; position:relative; overflow:hidden;
+  background:rgba(29,111,184,0.08);
+}
+.scan-corners::before, .scan-corners::after {
+  content:''; position:absolute; width:22px; height:22px; border-color:#1D6FB8; border-style:solid;
+}
+.scan-line {
+  position:absolute; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, #1D6FB8, transparent);
+  animation:scanMove 1.6s ease-in-out infinite;
+}
+@keyframes scanMove { 0%{top:0} 100%{top:100%} }
+.scan-lbl { color:#fff; font-size:17px; font-weight:700; }
+.scan-sub { color:rgba(255,255,255,0.5); font-size:13px; }
+
+/* Fix: upload button inside scan card */
+.scan-upload-input { display:none; }
+
 /* Flow guide */
 .flow-guide { display:flex; gap:6px; align-items:center; }
 .flow-dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.2); cursor:pointer; transition:all .2s; }
@@ -277,11 +346,11 @@ body {
             <div class="social-btn" onclick="go('family-setup')"><span style="font-size:18px;font-weight:700;color:#4285F4;">G</span> Continue with Google</div>
             <div class="divider"><div class="divider-line"></div><div class="divider-text">or use email</div><div class="divider-line"></div></div>
             <div class="form-group"><label class="form-label">First name</label><input class="form-input" type="text" placeholder="Taylor" value="Taylor"></div>
-            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@email.com"></div>
-            <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="••••••••"></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@email.com" value="taylor@simmerapp.com"></div>
+            <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="••••••••" value="simmer2025"></div>
             <p style="font-size:12px;color:#9CA3AF;line-height:1.6;margin-top:8px;">By continuing you agree to Simmer's Terms of Service and Privacy Policy.</p>
           </div>
-          <div class="bottom"><button class="btn btn-blue" onclick="go('family-setup')">Create account →</button></div>
+          <div class="bottom"><button class="btn btn-blue" onclick="go('family-setup')">Create account</button></div>
         </div>
 
 
@@ -325,20 +394,34 @@ body {
               <div style="font-size:13px;color:#92400E;line-height:1.5;"><b style="color:#854D0E;">Daycare lunches.</b> Simmer will flag which dinners pack well as a leftover lunch for Aiden tomorrow.</div>
             </div>
           </div>
-          <div class="bottom"><button class="btn btn-blue" onclick="go('onboard-1')">Looks good →</button></div>
+          <div class="bottom"><button class="btn btn-blue" onclick="go('onboard-1')">Looks good</button></div>
         </div>
 
 
         <!-- ONBOARD 1: PROTEINS -->
         <div class="screen" id="s-onboard-1">
           <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('family-setup')">‹ Back</div>
+            <div class="nav-title">Pantry Setup</div>
+            <div class="nav-right"></div>
+          </div>
           <div style="padding:8px 20px 0;"><div class="progress-bar"><div class="progress-fill" style="width:33%;"></div></div></div>
           <div class="onboard-header" style="padding-top:16px;">
             <div class="onboard-step">Step 1 of 3 · Proteins</div>
             <div class="onboard-title">What proteins do you usually have?</div>
             <div class="onboard-sub">Select everything you typically keep at home. This becomes your pantry baseline.</div>
           </div>
-          <div class="chip-grid" style="flex:1;align-content:flex-start;overflow-y:auto;padding-bottom:110px;">
+          <div class="chip-grid" id="grid-proteins" style="flex:1;align-content:flex-start;overflow-y:auto;padding-bottom:110px;">
+            <div class="scan-card" style="grid-column:1/-1;" onclick="scanFridge('proteins')">
+              <div class="scan-card-icon">📷</div>
+              <div><div class="scan-card-title">Scan your fridge</div><div class="scan-card-sub">Take a photo — AI will detect what you have in seconds</div></div>
+            </div>
+            <div class="or-divider" style="grid-column:1/-1;"><div class="or-line"></div><div class="or-text">or select below</div><div class="or-line"></div></div>
+            <div class="detected-banner" id="detected-proteins" style="grid-column:1/-1;">
+              <span style="font-size:18px;">✅</span>
+              <div style="font-size:13px;color:#166534;font-weight:500;">AI detected chicken, eggs & ground beef — added to your list</div>
+            </div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍗</span> Chicken</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🥚</span> Eggs</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🥩</span> Ground beef</div>
@@ -349,21 +432,41 @@ body {
             <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🫘</span> Canned beans</div>
             <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🥓</span> Bacon / sausage</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🐔</span> Rotisserie chicken</div>
+            <div class="add-item-row">
+              <input class="add-item-input" id="custom-input-proteins" type="text" placeholder="Add your own protein…" onkeydown="if(event.key==='Enter')addCustomItem('custom-input-proteins','grid-proteins')">
+              <button class="add-item-btn" onclick="addCustomItem('custom-input-proteins','grid-proteins')">+</button>
+            </div>
           </div>
-          <div class="bottom"><button class="btn btn-blue" onclick="go('onboard-2')">Next →</button></div>
+          <div class="bottom">
+            <button class="btn btn-blue" onclick="go('onboard-2')">Next</button>
+          </div>
         </div>
 
 
         <!-- ONBOARD 2: PANTRY -->
         <div class="screen" id="s-onboard-2">
           <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('onboard-1')">‹ Back</div>
+            <div class="nav-title">Pantry Setup</div>
+            <div class="nav-right"></div>
+          </div>
           <div style="padding:8px 20px 0;"><div class="progress-bar"><div class="progress-fill" style="width:66%;"></div></div></div>
           <div class="onboard-header" style="padding-top:16px;">
             <div class="onboard-step">Step 2 of 3 · Pantry</div>
             <div class="onboard-title">What's always in your pantry?</div>
             <div class="onboard-sub">These are the building blocks Simmer assumes you always have.</div>
           </div>
-          <div class="chip-grid" style="flex:1;align-content:flex-start;overflow-y:auto;padding-bottom:110px;">
+          <div class="chip-grid" id="grid-pantry" style="flex:1;align-content:flex-start;overflow-y:auto;padding-bottom:110px;">
+            <div class="scan-card" style="grid-column:1/-1;" onclick="scanFridge('pantry')">
+              <div class="scan-card-icon">📷</div>
+              <div><div class="scan-card-title">Scan your pantry</div><div class="scan-card-sub">Take a photo — AI will detect what you have in seconds</div></div>
+            </div>
+            <div class="or-divider" style="grid-column:1/-1;"><div class="or-line"></div><div class="or-text">or select below</div><div class="or-line"></div></div>
+            <div class="detected-banner" id="detected-pantry" style="grid-column:1/-1;">
+              <span style="font-size:18px;">✅</span>
+              <div style="font-size:13px;color:#166534;font-weight:500;">AI detected pasta, rice, garlic & 5 more items — added to your list</div>
+            </div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍝</span> Pasta</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍚</span> Rice</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍞</span> Bread</div>
@@ -376,10 +479,13 @@ body {
             <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🫙</span> Chicken broth</div>
             <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🥦</span> Frozen veggies</div>
             <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🍋</span> Lemons</div>
+            <div class="add-item-row">
+              <input class="add-item-input" id="custom-input-pantry" type="text" placeholder="Add your own staple…" onkeydown="if(event.key==='Enter')addCustomItem('custom-input-pantry','grid-pantry')">
+              <button class="add-item-btn" onclick="addCustomItem('custom-input-pantry','grid-pantry')">+</button>
+            </div>
           </div>
           <div class="bottom">
-            <button class="btn btn-blue" onclick="go('onboard-3')">Next →</button>
-            <button class="btn btn-ghost" onclick="go('onboard-1')">‹ Back</button>
+            <button class="btn btn-blue" onclick="go('onboard-3')">Next</button>
           </div>
         </div>
 
@@ -387,6 +493,11 @@ body {
         <!-- ONBOARD 3: PREFERENCES -->
         <div class="screen" id="s-onboard-3">
           <div class="status-bar"><span class="status-time">5:12 PM</span></div>
+          <div class="nav">
+            <div class="nav-back" onclick="go('onboard-2')">‹ Back</div>
+            <div class="nav-title">Pantry Setup</div>
+            <div class="nav-right"></div>
+          </div>
           <div style="padding:8px 20px 0;"><div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div></div>
           <div class="onboard-header" style="padding-top:16px;">
             <div class="onboard-step">Step 3 of 3 · Preferences</div>
@@ -394,7 +505,7 @@ body {
             <div class="onboard-sub">What does Aiden reliably eat? Simmer will include at least one in every suggestion.</div>
           </div>
           <div class="scroll" style="padding-top:0;padding-bottom:130px;">
-            <div class="chip-grid" style="padding-left:0;padding-right:0;padding-top:16px;">
+            <div class="chip-grid" id="grid-anchors" style="padding-left:0;padding-right:0;padding-top:16px;">
               <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍗</span> Chicken</div>
               <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍝</span> Noodles / pasta</div>
               <div class="chip on" onclick="toggleChip(this)"><span class="chip-emoji">🍚</span> Rice</div>
@@ -403,6 +514,10 @@ body {
               <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🍞</span> Bread / toast</div>
               <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🥕</span> Carrots</div>
               <div class="chip" onclick="toggleChip(this)"><span class="chip-emoji">🍌</span> Fruit sides</div>
+              <div class="add-item-row">
+                <input class="add-item-input" id="custom-input-anchors" type="text" placeholder="Add a food Aiden eats…" onkeydown="if(event.key==='Enter')addCustomItem('custom-input-anchors','grid-anchors')">
+                <button class="add-item-btn" onclick="addCustomItem('custom-input-anchors','grid-anchors')">+</button>
+              </div>
             </div>
             <div class="sec-hdr" style="margin-top:24px;">Max weeknight cook time</div>
             <div class="cook-options">
@@ -412,8 +527,7 @@ body {
             </div>
           </div>
           <div class="bottom">
-            <button class="btn btn-blue" onclick="go('onboard-done')">Finish setup →</button>
-            <button class="btn btn-ghost" onclick="go('onboard-2')">‹ Back</button>
+            <button class="btn btn-blue" onclick="go('onboard-done')">Finish setup</button>
           </div>
         </div>
 
@@ -431,7 +545,7 @@ body {
               <div class="summary-item"><div class="summary-icon">🥡</div><div class="summary-text">Flag which dinners pack well as a daycare lunch tomorrow</div></div>
               <div class="summary-item"><div class="summary-icon">📤</div><div class="summary-text">Let you share options with Wilfried with one tap — no conversation needed</div></div>
             </div>
-            <button class="btn btn-blue" style="width:100%;" onclick="go('home')">Let's find tonight's dinner →</button>
+            <button class="btn btn-blue" style="width:100%;" onclick="go('home')">Let's find tonight's dinner</button>
           </div>
         </div>
 
@@ -491,7 +605,7 @@ body {
           <div class="nav">
             <div class="nav-back" onclick="go('home')">‹ Home</div>
             <div class="nav-title">Tonight's Options</div>
-            <div class="nav-right" onclick="go('share')">Share</div>
+            <div class="nav-right"></div>
           </div>
           <div class="scroll" style="padding-top:16px;">
             <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:16px;">From your pantry · Under 30 min · Aiden-friendly · 🥡 = packs for daycare tomorrow</p>
@@ -582,7 +696,7 @@ body {
               <span class="bubble-meta">Wilfried · just now</span>
             </div>
           </div>
-          <div class="bottom"><button class="btn btn-blue" onclick="pick(2)">🍝 View Pasta prep steps →</button></div>
+          <div class="bottom"><button class="btn btn-blue" onclick="pick(2)">🍝 View Pasta prep steps</button></div>
         </div>
 
 
@@ -643,7 +757,7 @@ body {
             <div class="nav-title">This Week's Extras</div>
             <div class="nav-right"></div>
           </div>
-          <div class="scroll" style="padding-top:16px;">
+          <div class="scroll" style="padding-top:16px;padding-bottom:90px;">
             <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:20px;">Flag anything special this week — perishables, bulk buys, things that need to be used. Takes 30 seconds.</p>
             <div class="sec-hdr">Do you have any of these?</div>
             <div class="extra-item"><div><div class="extra-label">🐟 Salmon (use soon)</div><div class="extra-sub">Perishable · Prioritize tonight or tomorrow</div></div><div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div></div>
@@ -651,8 +765,21 @@ body {
             <div class="extra-item"><div><div class="extra-label">🥘 Costco lasagna</div><div class="extra-sub">Pre-packaged · 45 min oven · 🥡 Great for daycare lunch</div></div><div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div></div>
             <div class="extra-item"><div><div class="extra-label">🥦 Fresh broccoli</div><div class="extra-sub">Use within 3 days</div></div><div class="toggle on" onclick="tog(this)"><div class="toggle-th"></div></div></div>
             <div class="extra-item"><div><div class="extra-label">🍗 Leftover rotisserie chicken</div><div class="extra-sub">Use tonight or tomorrow · 🥡 Packs well</div></div><div class="toggle" onclick="tog(this)"><div class="toggle-th"></div></div></div>
+            <div id="extras-custom-list"></div>
+            <div style="padding:16px 0 4px;">
+              <div class="sec-hdr" style="margin-bottom:12px;">Add your own</div>
+              <div style="display:flex;gap:8px;">
+                <input class="add-item-input" id="custom-input-extras" type="text" placeholder="e.g. half a bell pepper…" style="flex:1;" onkeydown="if(event.key==='Enter')addExtraItem()">
+                <button class="add-item-btn" onclick="addExtraItem()">+</button>
+              </div>
+            </div>
           </div>
-          <div class="bottom"><button class="btn btn-blue" onclick="go('home')">✓ Save extras</button></div>
+          <div class="tab-bar">
+            <div class="tab" onclick="go('home')"><div class="tab-icon">🏠</div><div class="tab-lbl">Home</div></div>
+            <div class="tab"><div class="tab-icon">🍽️</div><div class="tab-lbl">History</div></div>
+            <div class="tab"><div class="tab-icon">👥</div><div class="tab-lbl">Family</div></div>
+            <div class="tab"><div class="tab-icon">⚙️</div><div class="tab-lbl">Settings</div></div>
+          </div>
         </div>
 
 
@@ -666,7 +793,16 @@ body {
           </div>
           <div class="scroll" style="padding-top:20px;">
 
-            <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:20px;">Tap to add or remove items. Simmer uses this every time it generates suggestions.</p>
+            <p style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:16px;">Tap to add or remove items. Simmer uses this every time it generates suggestions.</p>
+
+            <div class="scan-card" style="margin-bottom:8px;" onclick="scanFridge('profile')">
+              <div class="scan-card-icon">📷</div>
+              <div><div class="scan-card-title">Re-scan your fridge &amp; pantry</div><div class="scan-card-sub">Update your profile with a quick photo scan</div></div>
+            </div>
+            <div class="detected-banner" id="detected-profile" style="margin-bottom:12px;">
+              <span style="font-size:18px;">✅</span>
+              <div style="font-size:13px;color:#166534;font-weight:500;">Profile updated — 8 items confirmed from your scan</div>
+            </div>
 
             <div class="sec-hdr">Proteins</div>
             <div class="chip-grid" style="padding:0 0 16px;">
@@ -726,6 +862,16 @@ body {
 
 
       </div>
+
+      <!-- SCAN OVERLAY -->
+      <div id="scan-overlay">
+        <div style="text-align:center;padding-top:80px;display:flex;flex-direction:column;align-items:center;gap:24px;">
+          <div style="font-size:14px;color:rgba(255,255,255,0.65);letter-spacing:0.04em;">Scanning your fridge…</div>
+          <div class="scan-frame"><div class="scan-line"></div></div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);">AI is identifying your ingredients</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -798,9 +944,47 @@ function pick(id) {
   go('detail');
 }
 
+function addExtraItem() {
+  const input = document.getElementById('custom-input-extras');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.getElementById('extras-custom-list');
+  const row = document.createElement('div');
+  row.className = 'extra-item';
+  row.innerHTML = `<div><div class="extra-label">✏️ ${val}</div><div class="extra-sub">Added by you</div></div><div class="toggle on" onclick="tog(this)"><div class="toggle-th"></div></div>`;
+  list.appendChild(row);
+  input.value = '';
+  input.focus();
+}
+
 function tog(el) { el.classList.toggle('on'); }
 function toggleChip(el) { el.classList.toggle('on'); }
 function pickCook(el) { el.parentElement.querySelectorAll('.cook-opt').forEach(o => o.classList.remove('on')); el.classList.add('on'); }
+
+function addCustomItem(inputId, gridId) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) return;
+  const grid = document.getElementById(gridId);
+  const addRow = grid.querySelector('.add-item-row');
+  const chip = document.createElement('div');
+  chip.className = 'chip on';
+  chip.onclick = function() { toggleChip(this); };
+  chip.innerHTML = '<span class="chip-emoji">✏️</span> ' + val;
+  grid.insertBefore(chip, addRow);
+  input.value = '';
+  input.focus();
+}
+
+function scanFridge(section) {
+  const overlay = document.getElementById('scan-overlay');
+  overlay.classList.add('active');
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    const banner = document.getElementById('detected-' + section);
+    if (banner) banner.classList.add('show');
+  }, 2300);
+}
 function fbPick(el) { el.closest('.fb-row').querySelectorAll('.fb-opt').forEach(o => o.classList.remove('on')); el.classList.add('on'); }
 function todPick(el) { el.parentElement.querySelectorAll('.tod-btn').forEach(b => b.classList.remove('on')); el.classList.add('on'); }
 
